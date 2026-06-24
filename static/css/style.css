@@ -482,6 +482,12 @@ body {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
+.release-card:focus-visible {
+    outline: 2px solid var(--clr-purple);
+    outline-offset: -2px;
+    box-shadow: 0 0 20px var(--clr-purple-glow), 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
 /* Card Selection Highlighting */
 .release-card.selected {
     border-color: var(--clr-purple);

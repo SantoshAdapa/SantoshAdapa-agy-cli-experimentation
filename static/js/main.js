@@ -261,6 +261,9 @@ function renderTimeline() {
             const card = document.createElement('div');
             card.className = `release-card ${isSelected ? 'selected' : ''}`;
             card.dataset.id = update.id;
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
             
             card.innerHTML = `
                 <div class="card-top">
@@ -298,6 +301,17 @@ function renderTimeline() {
                     return; // Prevent selection when clicking links/buttons
                 }
                 toggleUpdateSelection(update.id, card);
+            });
+            
+            // Keyboard Interaction: Select on Space/Enter keypresses
+            card.addEventListener('keydown', (e) => {
+                if (e.target.closest('a') || e.target.closest('.btn-single-tweet') || e.target.closest('.btn-copy-card')) {
+                    return; // Ignore keydown on internal buttons/links
+                }
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault(); // Prevent page scrolling on spacebar press
+                    toggleUpdateSelection(update.id, card);
+                }
             });
             
             // Interaction: Copy Update Plaintext Trigger
@@ -339,9 +353,11 @@ function toggleUpdateSelection(updateId, cardElement) {
     if (selectedUpdateIds.has(updateId)) {
         selectedUpdateIds.delete(updateId);
         cardElement.classList.remove('selected');
+        cardElement.setAttribute('aria-pressed', 'false');
     } else {
         selectedUpdateIds.add(updateId);
         cardElement.classList.add('selected');
+        cardElement.setAttribute('aria-pressed', 'true');
     }
     
     updateFloatingActionBar();
