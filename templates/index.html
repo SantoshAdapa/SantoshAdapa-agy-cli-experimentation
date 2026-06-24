@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BigQuery Release Hub - Beautiful dashboard for tracking and sharing Google BigQuery release notes and updates.">
+    <title>BigQuery Release Hub</title>
+    <!-- Google Fonts: Plus Jakarta Sans for UI, JetBrains Mono for Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background Glow Effects -->
+    <div class="glow-bg glow-purple"></div>
+    <div class="glow-bg glow-teal"></div>
+
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="header-main">
+                <div class="logo-area">
+                    <div class="logo-wrapper">
+                        <!-- Custom SVG Database + Cloud + Query Logo -->
+                        <svg class="app-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 4.24 2 7V17C2 19.76 6.48 22 12 22C17.52 22 22 19.76 22 17V7C22 4.24 17.52 2 12 2Z" fill="url(#logoGrad)" />
+                            <path d="M22 7C22 9.76 17.52 12 12 12C6.48 12 2 9.76 2 7" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M22 12C22 14.76 17.52 17 12 17C6.48 17 2 14.76 2 12" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M12 5.5V8.5M10.5 7H13.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="logoGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#8b5cf6" />
+                                    <stop offset="1" stop-color="#06b6d4" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="title-wrapper">
+                        <h1>BigQuery Release Hub</h1>
+                        <p class="subtitle">Real-time Google BigQuery updates, parsed & ready to share</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span id="cache-indicator" class="cache-badge">Checking connection...</span>
+                    <button id="btn-refresh" class="btn btn-primary btn-icon" title="Refresh Release Notes">
+                        <svg class="icon icon-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                        </svg>
+                        <span>Refresh Notes</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Statistics -->
+            <div id="stats-dashboard" class="stats-dashboard">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">-</div>
+                    <div class="stat-label">Total Updates</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-feature" id="stat-features">-</div>
+                    <div class="stat-label">Features</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-announcement" id="stat-announcements">-</div>
+                    <div class="stat-label">Announcements</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-fix" id="stat-fixes">-</div>
+                    <div class="stat-label">Fixes</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="app-content">
+            <!-- Search and Filter Bar -->
+            <section class="controls-section">
+                <div class="search-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Search titles, descriptions, dates, or concepts..." autocomplete="off">
+                    <button id="search-clear" class="search-clear" title="Clear search">&times;</button>
+                </div>
+
+                <div class="filter-wrapper">
+                    <div id="filter-pills" class="filter-pills">
+                        <button class="filter-pill active" data-type="all">All <span class="count" id="count-all">0</span></button>
+                        <button class="filter-pill" data-type="Feature">Features <span class="count" id="count-feature">0</span></button>
+                        <button class="filter-pill" data-type="Announcement">Announcements <span class="count" id="count-announcement">0</span></button>
+                        <button class="filter-pill" data-type="Fix">Fixes <span class="count" id="count-fix">0</span></button>
+                        <button class="filter-pill" data-type="Change">Changes <span class="count" id="count-change">0</span></button>
+                        <button class="filter-pill" data-type="General">General <span class="count" id="count-general">0</span></button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Release Notes Timeline -->
+            <section class="timeline-section">
+                <!-- Loading Skeleton -->
+                <div id="loading-skeleton" class="timeline-loading">
+                    <div class="skeleton-date-group">
+                        <div class="skeleton-date-bar"></div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-header">
+                                <div class="skeleton-badge"></div>
+                                <div class="skeleton-checkbox"></div>
+                            </div>
+                            <div class="skeleton-line short"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-footer"></div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-header">
+                                <div class="skeleton-badge"></div>
+                                <div class="skeleton-checkbox"></div>
+                            </div>
+                            <div class="skeleton-line short"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-footer"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state hidden">
+                    <div class="empty-icon">📂</div>
+                    <h3>No Release Notes Found</h3>
+                    <p>Try resetting filters or adjusting your search term.</p>
+                    <button id="btn-reset-filters" class="btn btn-secondary">Reset Search & Filters</button>
+                </div>
+
+                <!-- Notes Container -->
+                <div id="releases-container" class="releases-container"></div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <p>BigQuery Release Hub &bull; Powered by Flask & vanilla web technologies.</p>
+        </footer>
+    </div>
+
+    <!-- Floating Selection Action Bar (Combined Tweet Helper) -->
+    <div id="floating-action-bar" class="floating-action-bar hidden">
+        <div class="bar-content">
+            <span class="selection-count"><strong id="selected-count">0</strong> updates selected</span>
+            <div class="bar-buttons">
+                <button id="btn-clear-selection" class="btn btn-secondary btn-sm">Clear</button>
+                <button id="btn-tweet-selected" class="btn btn-accent btn-sm">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>Tweet Combined Summary</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tweet Composer Modal -->
+    <div id="tweet-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Compose Tweet</h3>
+                <button id="modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Template Selection -->
+                <div class="form-group">
+                    <label for="tweet-template">Select Tweet Style</label>
+                    <select id="tweet-template" class="form-control">
+                        <option value="default">Default Template (Highlights + Link)</option>
+                        <option value="short">Short & Punchy</option>
+                        <option value="features">Feature Spotlight</option>
+                        <option value="raw">Raw Text Only</option>
+                    </select>
+                </div>
+
+                <!-- Tweet Text Editor -->
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="tweet-textarea">Tweet Content</label>
+                        <div class="char-count-wrapper">
+                            <span id="char-count">0</span>/280
+                            <div class="progress-ring-container">
+                                <svg class="progress-ring" width="20" height="20">
+                                    <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="transparent" r="8" cx="10" cy="10"/>
+                                    <circle id="progress-ring-indicator" class="progress-ring__circle" stroke="#06b6d4" stroke-width="2" fill="transparent" r="8" cx="10" cy="10"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea id="tweet-textarea" class="form-control" rows="6" placeholder="Customize your tweet here..."></textarea>
+                    <div id="char-warning" class="warning-text hidden">⚠️ Over character limit! The text will be truncated when sending.</div>
+                </div>
+
+                <!-- Modern Live Mock Preview -->
+                <div class="live-preview-section">
+                    <span class="preview-label">Live Preview (Dark Mode Preview)</span>
+                    <div class="tweet-preview-card">
+                        <div class="tweet-header">
+                            <div class="tweet-avatar">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                                </svg>
+                            </div>
+                            <div class="tweet-user-info">
+                                <span class="display-name">BigQuery Release Bot</span>
+                                <span class="username">@bq_releases &bull; Just now</span>
+                            </div>
+                            <div class="twitter-x-logo">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="tweet-content" id="tweet-preview-text">
+                            Preview content goes here...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-copy-tweet" class="btn btn-secondary">Copy Text</button>
+                <button id="btn-submit-tweet" class="btn btn-accent btn-icon">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>Post to X / Twitter</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

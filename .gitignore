@@ -1,0 +1,33 @@
+# Python Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Flask / Application Cache
+releases_cache.json
+stdout.txt
+stderr.txt
+models.txt
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+dist/
+build/
+*.egg-info/
+
+# IDE / Editor Settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS Files
+.DS_Store
+Thumbs.db
