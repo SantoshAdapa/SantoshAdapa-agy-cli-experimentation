@@ -12,6 +12,7 @@ const elements = {
     loadingSkeleton: document.getElementById('loading-skeleton'),
     emptyState: document.getElementById('empty-state'),
     btnRefresh: document.getElementById('btn-refresh'),
+    btnExportCsv: document.getElementById('btn-export-csv'),
     cacheIndicator: document.getElementById('cache-indicator'),
     searchInput: document.getElementById('search-input'),
     searchClear: document.getElementById('search-clear'),
@@ -272,6 +273,13 @@ function renderTimeline() {
                     ${update.html}
                 </div>
                 <div class="card-footer">
+                    <button class="btn btn-secondary btn-sm btn-copy-card btn-icon" title="Copy text to clipboard">
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span>Copy</span>
+                    </button>
                     <button class="btn btn-secondary btn-sm btn-single-tweet btn-icon">
                         <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -281,12 +289,30 @@ function renderTimeline() {
                 </div>
             `;
             
-            // Interaction: Select on Click (unless clicking links or the single tweet button)
+            // Interaction: Select on Click (unless clicking links, copy button, or the single tweet button)
             card.addEventListener('click', (e) => {
-                if (e.target.closest('a') || e.target.closest('.btn-single-tweet')) {
+                if (e.target.closest('a') || e.target.closest('.btn-single-tweet') || e.target.closest('.btn-copy-card')) {
                     return; // Prevent selection when clicking links/buttons
                 }
                 toggleUpdateSelection(update.id, card);
+            });
+            
+            // Interaction: Copy Update Plaintext Trigger
+            const copyBtn = card.querySelector('.btn-copy-card');
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(update.text)
+                    .then(() => {
+                        showToast('Update text copied to clipboard!', 'success');
+                        const labelSpan = copyBtn.querySelector('span');
+                        labelSpan.textContent = 'Copied!';
+                        setTimeout(() => {
+                            labelSpan.textContent = 'Copy';
+                        }, 1500);
+                    })
+                    .catch(() => {
+                        showToast('Failed to copy text.', 'error');
+                    });
             });
             
             // Interaction: Single Tweet Trigger
@@ -518,11 +544,51 @@ function copyTweetToClipboard() {
 }
 
 // ----------------------------------------------------
+// EXPORT TO CSV
+// ----------------------------------------------------
+function exportToCSV() {
+    const filteredData = getFilteredData();
+    if (filteredData.length === 0) {
+        showToast('No releases available to export.', 'error');
+        return;
+    }
+    
+    let csvContent = "Date,Update Type,Plaintext Description\r\n";
+    
+    filteredData.forEach(entry => {
+        entry.updates.forEach(update => {
+            const dateVal = `"${entry.date.replace(/"/g, '""')}"`;
+            const typeVal = `"${update.type.replace(/"/g, '""')}"`;
+            const textVal = `"${update.text.replace(/"/g, '""')}"`;
+            
+            csvContent += `${dateVal},${typeVal},${textVal}\r\n`;
+        });
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute("download", `bigquery_releases_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Releases exported to CSV successfully!', 'success');
+}
+
+// ----------------------------------------------------
 // EVENT LISTENERS & ROUTING
 // ----------------------------------------------------
 function setupEventListeners() {
     // Refresh API Action
     elements.btnRefresh.addEventListener('click', () => fetchReleases(true));
+    
+    // Export CSV Action
+    elements.btnExportCsv.addEventListener('click', exportToCSV);
     
     // Search Filters
     elements.searchInput.addEventListener('input', (e) => {
