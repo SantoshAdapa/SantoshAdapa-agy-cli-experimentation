@@ -689,9 +689,39 @@ function setupEventListeners() {
     });
 }
 
+// ----------------------------------------------------
+// INTERACTIVE BACKGROUND (SPOTLIGHT & PARALLAX)
+// ----------------------------------------------------
+function initInteractiveBackground() {
+    const purpleBlob = document.querySelector('.glow-purple');
+    const tealBlob = document.querySelector('.glow-teal');
+    
+    window.addEventListener('mousemove', (e) => {
+        const x = e.clientX;
+        const y = e.clientY;
+        
+        // Update CSS variables for spotlight radial gradient
+        document.documentElement.style.setProperty('--mouse-x', `${x}px`);
+        document.documentElement.style.setProperty('--mouse-y', `${y}px`);
+        
+        // Calculate offset percentages (-0.5 to 0.5) from center of window
+        const percentX = (x / window.innerWidth) - 0.5;
+        const percentY = (y / window.innerHeight) - 0.5;
+        
+        // Apply smooth parallax translation (opposite directions for depth)
+        if (purpleBlob) {
+            purpleBlob.style.transform = `translate(${percentX * -80}px, ${percentY * -80}px)`;
+        }
+        if (tealBlob) {
+            tealBlob.style.transform = `translate(${percentX * 80}px, ${percentY * 80}px)`;
+        }
+    });
+}
+
 // Start
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    initInteractiveBackground();
     setupEventListeners();
     fetchReleases();
 });
