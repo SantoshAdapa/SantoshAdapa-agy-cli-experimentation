@@ -13,6 +13,9 @@ const elements = {
     emptyState: document.getElementById('empty-state'),
     btnRefresh: document.getElementById('btn-refresh'),
     btnExportCsv: document.getElementById('btn-export-csv'),
+    btnThemeToggle: document.getElementById('btn-theme-toggle'),
+    themeIconDark: document.getElementById('theme-icon-dark'),
+    themeIconLight: document.getElementById('theme-icon-light'),
     cacheIndicator: document.getElementById('cache-indicator'),
     searchInput: document.getElementById('search-input'),
     searchClear: document.getElementById('search-clear'),
@@ -581,6 +584,34 @@ function exportToCSV() {
 }
 
 // ----------------------------------------------------
+// THEME SWITCHER
+// ----------------------------------------------------
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    if (theme === 'light') {
+        elements.themeIconDark.classList.add('hidden');
+        elements.themeIconLight.classList.remove('hidden');
+    } else {
+        elements.themeIconDark.classList.remove('hidden');
+        elements.themeIconLight.classList.add('hidden');
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    showToast(`Switched to ${newTheme} theme!`, 'info');
+}
+
+// ----------------------------------------------------
 // EVENT LISTENERS & ROUTING
 // ----------------------------------------------------
 function setupEventListeners() {
@@ -589,6 +620,9 @@ function setupEventListeners() {
     
     // Export CSV Action
     elements.btnExportCsv.addEventListener('click', exportToCSV);
+    
+    // Theme Toggle Action
+    elements.btnThemeToggle.addEventListener('click', toggleTheme);
     
     // Search Filters
     elements.searchInput.addEventListener('input', (e) => {
@@ -657,6 +691,7 @@ function setupEventListeners() {
 
 // Start
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     setupEventListeners();
     fetchReleases();
 });

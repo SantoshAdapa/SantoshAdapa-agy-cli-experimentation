@@ -34,6 +34,51 @@
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Tweet Preview Variables */
+    --tweet-bg: #000000;
+    --tweet-border: #2f3336;
+    --tweet-text: #e7e9ea;
+    --tweet-muted: #71767b;
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] {
+    --bg-main: #f8fafc;
+    --bg-surface: rgba(255, 255, 255, 0.7);
+    --bg-surface-solid: #ffffff;
+    --bg-surface-hover: rgba(241, 245, 249, 0.9);
+    
+    /* Text overrides */
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-glow: rgba(139, 92, 246, 0.1);
+    
+    /* Tweet Preview Overrides */
+    --tweet-bg: #ffffff;
+    --tweet-border: #e1e8ed;
+    --tweet-text: #0f172a;
+    --tweet-muted: #536471;
+}
+
+[data-theme="light"] .glow-bg {
+    opacity: 0.06;
+}
+
+[data-theme="light"] .title-wrapper h1 {
+    background: linear-gradient(to right, #0f172a, #334155);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .card-body {
+    color: #334155;
+}
+
+[data-theme="light"] .custom-checkbox {
+    border-color: var(--text-muted);
 }
 
 /* ----------------------------------------------------
@@ -843,8 +888,8 @@ textarea.form-control {
 }
 
 .tweet-preview-card {
-    background: #000000; /* X Dark Theme background */
-    border: 1px solid #2f3336;
+    background: var(--tweet-bg);
+    border: 1px solid var(--tweet-border);
     border-radius: 16px;
     padding: 1rem 1.2rem;
 }
@@ -881,23 +926,23 @@ textarea.form-control {
 .tweet-user-info .display-name {
     font-weight: 700;
     font-size: 0.95rem;
-    color: #e7e9ea;
+    color: var(--tweet-text);
 }
 
 .tweet-user-info .username {
-    color: #71767b;
+    color: var(--tweet-muted);
     font-size: 0.85rem;
 }
 
 .twitter-x-logo {
-    color: #71767b;
+    color: var(--tweet-muted);
     width: 18px;
     height: 18px;
 }
 
 .tweet-preview-card .tweet-content {
     font-size: 0.95rem;
-    color: #e7e9ea;
+    color: var(--tweet-text);
     white-space: pre-wrap;
     word-break: break-word;
 }
